@@ -1,6 +1,6 @@
 /* Service worker: кэширует всё приложение при первой загрузке, дальше работает без сети.
    При любом изменении файлов увеличь VERSION, иначе телефоны останутся на старой копии. */
-const VERSION = 'sevenkeys-v1.3.1';
+const VERSION = 'sevenkeys-v1.4.2';
 const FILES = [
   './',
   './app.css',
@@ -20,6 +20,8 @@ const FILES = [
   './fonts/oswald-latin-500-normal.woff2',
   './fonts/oswald-latin-600-normal.woff2',
   './fx.js',
+  './map-data.js',
+  './mapview.js',
   './icons/apple-touch-icon.png',
   './icons/icon-192.png',
   './icons/icon-512.png',

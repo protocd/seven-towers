@@ -3,7 +3,7 @@
    Алгоритм сверки: scan-core.js (+ scan-worker.js), анимации: fx.js, тексты и точки: data.js. */
 'use strict';
 const CFG = ScanCore.CFG, SW = ScanCore.SW, SH = ScanCore.SH;
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.4.0';
 const VISIT_LABEL = { free:'свободно', ticket:'по билету', booking:'по записи', closed:'закрыто' };
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const Plug = name => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
@@ -195,6 +195,7 @@ function renderRoute(){
     ${k.photo ? `<button class="view" data-view="${k.id}" aria-label="Вид с точки"><img alt="" src="${k.photo}"><span>вид с точки</span></button>` : ''}
     <div class="row">${statusChip(k)}<span class="dist">дальше: ${k.next}</span>
     ${S.opened[k.id] ? `<button class="linkbtn" data-facts="${k.id}">Факты и как попасть</button>` : `<button class="linkbtn" data-here="${k.id}">Я на месте</button>`}</div></div></li>`).join('');
+  if (window.renderMiniMap) renderMiniMap();
 }
 function renderKeys(){
   const cells = KEYS.map((k,i)=>{ const o=S.opened[k.id];
@@ -406,7 +407,7 @@ function showStory(id){
 }
 function durationText(ms){ const m = Math.max(1, Math.round(ms/60000)), h = Math.floor(m/60); return h ? `${h} ч ${m%60} мин` : `${m} мин`; }
 function statsLine(){
-  const scan = KEYS.filter(k=>S.opened[k.id]?.mode==='scan').length, parts = ['около 20 км'];
+  const scan = KEYS.filter(k=>S.opened[k.id]?.mode==='scan').length, parts = ['около 24 км'];
   if (S.meta.startedAt && S.meta.finishedAt) parts.push(durationText(S.meta.finishedAt - S.meta.startedAt));
   parts.push(`${scan} из 7 сканом`);
   return parts.join(' · ');
@@ -443,7 +444,7 @@ async function makePostcard(){
   } finally { if (btn && document.body.contains(btn)){ btn.disabled = false; btn.textContent = 'Открытка с моими кадрами'; } }
 }
 function showIntro(){
-  openSheet(`<span class="eyebrow">Велоквест · около 20 км</span>
+  openSheet(`<span class="eyebrow">Велоквест · около 24 км</span>
     <h2 class="disp">Семь высоток Москвы</h2>
     <p>Москва спрятала семь ключей от неба. Каждый ключ: силуэт короны одной из высоток. Он сработает только там, где рисунок совпадёт с настоящим зданием. Собери семь букв и прочти слово дня.</p>
     <ol class="steps">
@@ -742,6 +743,7 @@ addEventListener('resize', ()=>{ if (!$('editor').hidden) edFit(); });
 /* ============ СТАРТ ============ */
 (async function init(){
   placeForSource();
+  if (window.initMap) initMap();
   $('meterMark').style.left = (CFG.PASS*100)+'%';
   resetResult(); renderAll(); setTab('route'); requestAnimationFrame(loop);
   $('cfgTable').innerHTML = [
