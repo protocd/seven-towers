@@ -1,6 +1,6 @@
 /* Service worker: кэширует всё приложение при первой загрузке, дальше работает без сети.
    При любом изменении файлов увеличь VERSION, иначе телефоны останутся на старой копии. */
-const VERSION = 'sevenkeys-v1.4.3';
+const VERSION = 'sevenkeys-v1.4.5';
 const FILES = [
   './',
   './app.css',
