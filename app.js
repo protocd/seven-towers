@@ -3,7 +3,7 @@
    Алгоритм сверки: scan-core.js (+ scan-worker.js), анимации: fx.js, тексты и точки: data.js. */
 'use strict';
 const CFG = ScanCore.CFG, SW = ScanCore.SW, SH = ScanCore.SH;
-const APP_VERSION = '1.5.2';
+const APP_VERSION = '1.5.3';
 const VISIT_LABEL = { free:'свободно', ticket:'по билету', booking:'по записи', closed:'закрыто' };
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const Plug = name => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;

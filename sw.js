@@ -1,6 +1,6 @@
 /* Service worker: кэширует всё приложение при первой загрузке, дальше работает без сети.
    При любом изменении файлов увеличь VERSION, иначе телефоны останутся на старой копии. */
-const VERSION = 'sevenkeys-v1.5.2';
+const VERSION = 'sevenkeys-v1.5.3';
 const FILES = [
   './',
   './app.css',
@@ -32,11 +32,11 @@ const FILES = [
   './scan-core.js',
   './scan-worker.js',
   './recognizer.js',
-  './model/head.json',
-  './model/dinov2_small_int8.onnx',
-  './ort/ort.wasm.min.js',
-  './ort/ort-wasm-simd-threaded.mjs',
-  './ort/ort-wasm-simd-threaded.wasm'
+  './head.json',
+  './dinov2_small_int8.onnx',
+  './ort.wasm.min.js',
+  './ort-wasm-simd-threaded.mjs',
+  './ort-wasm-simd-threaded.wasm'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

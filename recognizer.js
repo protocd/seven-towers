@@ -11,10 +11,10 @@ const Recognizer = (function(){
   }
   function load(){
     if (!loading) loading = (async ()=>{
-      H = await (await fetch('model/head.json')).json();
-      if (typeof ort === 'undefined') await loadScript('ort/ort.wasm.min.js');
-      ort.env.wasm.wasmPaths = new URL('ort/', document.baseURI).href; ort.env.wasm.numThreads = 1;
-      sess = await ort.InferenceSession.create('model/dinov2_small_int8.onnx', { executionProviders: ['wasm'] });
+      H = await (await fetch('head.json')).json();
+      if (typeof ort === 'undefined') await loadScript('ort.wasm.min.js');
+      ort.env.wasm.wasmPaths = new URL('./', document.baseURI).href; ort.env.wasm.numThreads = 1;
+      sess = await ort.InferenceSession.create('dinov2_small_int8.onnx', { executionProviders: ['wasm'] });
     })().catch(e=>{ loading = null; throw e; });
     return loading;
   }
