@@ -3,7 +3,7 @@
    Алгоритм сверки: scan-core.js (+ scan-worker.js), анимации: fx.js, тексты и точки: data.js. */
 'use strict';
 const CFG = ScanCore.CFG, SW = ScanCore.SW, SH = ScanCore.SH;
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.5.1';
 const VISIT_LABEL = { free:'свободно', ticket:'по билету', booking:'по записи', closed:'закрыто' };
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const Plug = name => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
@@ -291,8 +291,9 @@ async function doCheck(){
   S.busy = true; startTimer(); setScanning(true); $('result').hidden = true;
   try {
     const minShow = sleep(FX.REDUCE ? 0 : 700);
-    let ml = null;     // нейросеть смотрит на кадр с камеры: если уверенно видит именно эту высотку, ключ открывается сразу
-    if (S.source==='camera' && typeof Recognizer !== 'undefined'){ try { ml = await Recognizer.classify(frame); } catch(e){ ml = null; } }
+    let ml = null, mlInfo = '';     // нейросеть смотрит на кадр с камеры: если уверенно видит именно эту высотку, ключ открывается сразу
+    if (S.source==='camera' && typeof Recognizer !== 'undefined'){ try { ml = await Recognizer.classify(frame); } catch(e){ ml = null; mlInfo = 'Нейросеть не запустилась: ' + (e && e.message || e); } }
+    if (ml){ const nm = ml.cls==='other' ? 'не высотка' : (KEY[ml.cls] ? KEY[ml.cls].name : ml.cls); mlInfo = 'Нейросеть: ' + nm + ', ' + Math.round(ml.prob*100) + '%'; }
     if (ml && ml.ok && ml.cls === S.keyId){
       await minShow; setScanning(false);
       const k = KEY[S.keyId], tip = frameToClient(S.place.cx, S.place.by - k.aspect*2*S.place.s);
@@ -318,6 +319,7 @@ async function doCheck(){
     setScanning(false);
     if (passed) await unlock(res);
     else fail(res, steady);
+    if (!passed && mlInfo) setTimeout(()=>toast(mlInfo), 300);
   } catch(e){ toast('Сверка не удалась: ' + e.message); }
   finally { S.busy = false; setScanning(false); }
 }
