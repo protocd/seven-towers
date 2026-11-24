@@ -3,7 +3,7 @@
    Алгоритм сверки: scan-core.js (+ scan-worker.js), анимации: fx.js, тексты и точки: data.js. */
 'use strict';
 const CFG = ScanCore.CFG, SW = ScanCore.SW, SH = ScanCore.SH;
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.5.0';
 const VISIT_LABEL = { free:'свободно', ticket:'по билету', booking:'по записи', closed:'закрыто' };
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const Plug = name => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
@@ -291,6 +291,19 @@ async function doCheck(){
   S.busy = true; startTimer(); setScanning(true); $('result').hidden = true;
   try {
     const minShow = sleep(FX.REDUCE ? 0 : 700);
+    let ml = null;     // нейросеть смотрит на кадр с камеры: если уверенно видит именно эту высотку, ключ открывается сразу
+    if (S.source==='camera' && typeof Recognizer !== 'undefined'){ try { ml = await Recognizer.classify(frame); } catch(e){ ml = null; } }
+    if (ml && ml.ok && ml.cls === S.keyId){
+      await minShow; setScanning(false);
+      const k = KEY[S.keyId], tip = frameToClient(S.place.cx, S.place.by - k.aspect*2*S.place.s);
+      const thumb = frameThumb(k, S.place);
+      buzz('success'); FX.rays(tip.x, tip.y, 170); FX.glow(tip.x, tip.y, 140); FX.burst(tip.x, tip.y, { n: 64, speed: 8, life: 62 });
+      restartClass($('flash'), 'go'); setTimeout(()=>$('flash').classList.remove('go'), 450);
+      await sleep(FX.REDUCE ? 0 : 280);
+      await recordAndFly(k, 'scan', ml.prob, thumb, tip);
+      return;
+    }
+    if (ml && ml.ok && ml.cls !== S.keyId && KEY[ml.cls]) toast('Похоже, в кадре «' + KEY[ml.cls].name + '». Проверь, тот ли ключ выбран.');
     const res = await Scanner.run(scanMsg('judge'));
     let passed = res.passed, steady = false;
     if (passed && S.source==='camera'){     // кадры 2…N: проверяем, что совпадение не случайное
@@ -450,7 +463,7 @@ function showIntro(){
     <ol class="steps">
       <li>Во вкладке «Маршрут» доберись до точки и нажми «Я на месте».</li>
       <li>Выбери в «Ключах» силуэт, похожий на здание перед тобой.</li>
-      <li>Наведи камеру, прибавь зум, совмести контур с верхушкой и нажми «Сверить».</li>
+      <li>Наведи камеру на здание и нажми «Сверить»: нейросеть на телефоне узнает высотку. Если не вышло, прибавь зум, совмести контур с верхушкой и нажми «Сверить» ещё раз.</li>
     </ol>
     <p class="small">Интернет и геолокация не нужны: всё считается на телефоне. Кнопка «?» вверху показывает подсказки.</p>
     <button class="btn" id="introGo">Начать</button>`);
@@ -754,6 +767,7 @@ addEventListener('resize', ()=>{ if (!$('editor').hidden) edFit(); });
   ].map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td></tr>`).join('');
   const splash = FX.splash(KEYS);
   await loadProjectKeys(); renderAll();
+  setTimeout(()=>{ try { Recognizer.load().catch(()=>{}); } catch(e){} }, 4000);
   setTimeout(()=>{ $('buildInfo').textContent = `версия ${APP_VERSION} · ${NATIVE ? 'iOS-приложение' : 'веб'} · сверка: ${Scanner.mode}`; }, 1500);
   await splash;
   if (!store.get('sevenKeys.intro', 0)) showIntro();
